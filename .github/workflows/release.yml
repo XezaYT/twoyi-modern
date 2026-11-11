@@ -22,9 +22,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Prepare RootFS & Native Libraries
         run: |
           sudo apt-get update && sudo apt-get install -y p7zip-full curl
@@ -76,7 +73,8 @@ jobs:
             -dname "CN=TwoyiModern, OU=Mobile, O=Twoyi, L=Global, S=Modern, C=US"
           
           # Sign using apksigner from Android SDK
-          APKSIGNER=$(find $ANDROID_SDK_ROOT/build-tools -name apksigner | sort -V | tail -n 1)
+          SDK_DIR="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          APKSIGNER=$(find "$SDK_DIR/build-tools" -name apksigner | sort -V | tail -n 1)
           echo "Using apksigner: $APKSIGNER"
           $APKSIGNER sign --ks release.keystore --ks-key-alias twoyi \
             --ks-pass pass:twoyimodern --key-pass pass:twoyimodern \
