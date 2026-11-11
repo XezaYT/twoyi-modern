@@ -22,10 +22,6 @@ import android.app.Application;
 import android.content.Context;
 import android.content.res.Resources;
 
-import com.microsoft.appcenter.AppCenter;
-import com.microsoft.appcenter.analytics.Analytics;
-import com.microsoft.appcenter.crashes.Crashes;
-
 import java.lang.reflect.Field;
 
 import io.twoyi.utils.RomManager;

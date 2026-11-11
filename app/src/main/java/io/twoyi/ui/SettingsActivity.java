@@ -28,8 +28,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 import androidx.core.util.Pair;
 
-import com.microsoft.appcenter.crashes.Crashes;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -183,7 +181,7 @@ public class SettingsActivity extends AppCompatActivity {
                 try {
                     Files.write(tmpLog.toPath(), bugreport);
                 } catch (IOException e) {
-                    Crashes.trackError(e);
+                    LogEvents.trackError(e);
                 }
                 Uri uri = FileProvider.getUriForFile(context, "io.twoyi.fileprovider", tmpLog);
 
