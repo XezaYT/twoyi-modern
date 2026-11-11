@@ -19,7 +19,8 @@ android {
     defaultConfig {
         applicationId "io.twoyi"
         minSdkVersion 27
-        targetSdkVersion 34
+        //noinspection ExpiredTargetSdkVersion
+        targetSdkVersion 28
         versionCode 20000
         versionName "1.0.0-modern-${buildSerial}"
 

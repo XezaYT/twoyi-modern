@@ -21,12 +21,13 @@
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
     </style>
 
-    <style name="Theme.Twoyi.FullScreen" parent="@style/ThemeOverlay.AppCompat.Dark">
+    <style name="Theme.Twoyi.FullScreen" parent="@style/Theme.AppCompat.NoActionBar">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
         <item name="android:windowBackground">#000000</item>
         <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="p">never</item>
     </style>
 </resources>

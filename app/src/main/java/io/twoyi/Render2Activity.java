@@ -98,6 +98,8 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
         boolean started = TwoyiStatusManager.getInstance().isStarted();
         Log.i(TAG, "onCreate: " + savedInstanceState + " isStarted: " + started);
 
@@ -111,9 +113,11 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
         // reset state
         TwoyiStatusManager.getInstance().reset();
 
-        NavUtils.hideNavigation(getWindow());
-
-        super.onCreate(savedInstanceState);
+        try {
+            NavUtils.hideNavigation(getWindow());
+        } catch (Throwable t) {
+            Log.w(TAG, "hideNavigation failed", t);
+        }
 
         setContentView(R.layout.ac_render);
         mRootView = findViewById(R.id.root);
@@ -126,8 +130,16 @@ public class Render2Activity extends Activity implements View.OnTouchListener {
         mLoadingText = findViewById(R.id.loadingText);
         mBootLogView = findViewById(R.id.bootlog);
 
-        mLoadingLayout.setVisibility(View.VISIBLE);
-        mLoadingView.startAnimation();
+        if (mLoadingLayout != null) {
+            mLoadingLayout.setVisibility(View.VISIBLE);
+        }
+        if (mLoadingView != null) {
+            try {
+                mLoadingView.startAnimation();
+            } catch (Throwable t) {
+                Log.w(TAG, "startAnimation failed", t);
+            }
+        }
 
         UITips.checkForAndroid12(this, this::bootSystem);
 

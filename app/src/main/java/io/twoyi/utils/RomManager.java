@@ -109,14 +109,18 @@ public final class RomManager {
         try {
             Files.deleteIfExists(loaderSymlink);
             Files.createSymbolicLink(loaderSymlink, Paths.get(loaderPath));
-        } catch (IOException e) {
-            throw new RuntimeException("symlink loader failed.", e);
+        } catch (Throwable e) {
+            Log.w(TAG, "symlink loader failed: " + e.getMessage());
         }
     }
 
     private static void killOrphanProcess() {
-        Shell shell = ShellUtil.newSh();
-        shell.newJob().add("ps -ef | awk '{if($3==1) print $2}' | xargs kill -9").exec();
+        try {
+            Shell shell = ShellUtil.newSh();
+            shell.newJob().add("ps -ef | awk '{if($3==1) print $2}' | xargs kill -9").exec();
+        } catch (Throwable t) {
+            Log.w(TAG, "killOrphanProcess failed: " + t.getMessage());
+        }
     }
 
     private static void saveLastKmsg(Context context) {
