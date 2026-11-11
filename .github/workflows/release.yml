@@ -1,0 +1,104 @@
+name: Build Twoyi Modern Release
+
+on:
+  push:
+    branches: [ main, master ]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Package Modern APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Prepare RootFS & Native Libraries
+        run: |
+          sudo apt-get update && sudo apt-get install -y p7zip-full curl
+          mkdir -p app/src/main/assets app/src/main/jniLibs/arm64-v8a staging/rootfs/system/app
+
+          # Fetch base rootfs and compiled libraries from official Twoyi release
+          echo "Fetching Twoyi base assets..."
+          curl -L -o /tmp/twoyi_base.apk "https://github.com/twoyi/twoyi/releases/download/0.5.4/twoyi_0.5.4-03211927-release.apk"
+          7z e /tmp/twoyi_base.apk assets/rootfs.7z assets/rom.ini -oapp/src/main/assets/ -y
+          7z e /tmp/twoyi_base.apk lib/arm64-v8a/*.so -oapp/src/main/jniLibs/arm64-v8a/ -y
+
+          # Download curated pre-installed apps
+          echo "Downloading pre-installed apps..."
+          mkdir -p staging/rootfs/system/app/Aerium \
+                   staging/rootfs/system/app/FossifyGallery \
+                   staging/rootfs/system/app/FossifyMusic \
+                   staging/rootfs/system/app/TaskManager \
+                   staging/rootfs/system/app/FDroid
+
+          curl -L -o staging/rootfs/system/app/Aerium/Aerium.apk "https://github.com/aerium-browser/aerium-browser-core/releases/download/v155.0.8059.39-b300/aerium-155.0.8059.39-arm64-v8a.apk"
+          curl -L -o staging/rootfs/system/app/FossifyGallery/FossifyGallery.apk "https://github.com/FossifyOrg/Gallery/releases/download/1.14.2/gallery-40-foss-release.apk"
+          curl -L -o staging/rootfs/system/app/FossifyMusic/FossifyMusic.apk "https://github.com/FossifyOrg/Music-Player/releases/download/1.8.5/musicplayer-18-foss-release.apk"
+          curl -L -o staging/rootfs/system/app/TaskManager/TaskManager.apk "https://github.com/biplobsd/running_services_monitor/releases/download/v1.0.27%2B26/rsm_v1.0.27%2B26.apk"
+          curl -L -o staging/rootfs/system/app/FDroid/FDroid.apk "https://f-droid.org/F-Droid.apk"
+
+          # Remove Google Pinyin from rootfs (LatinIME remains as default clean keyboard)
+          7z d app/src/main/assets/rootfs.7z rootfs/system/app/GooglePinyin -r
+
+          # Inject apps into rootfs.7z
+          echo "Injecting apps into rootfs.7z..."
+          cd staging
+          7z a ../app/src/main/assets/rootfs.7z rootfs/system/app/*
+          cd ..
+          rm -rf staging /tmp/twoyi_base.apk
+          echo "Rootfs preparation complete!"
+
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x gradlew
+
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --stacktrace
+
+      - name: Sign Release APK
+        run: |
+          UNSIGNED_APK=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          echo "Found unsigned APK: $UNSIGNED_APK"
+          keytool -genkeypair -v -keystore release.keystore -alias twoyi -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass twoyimodern -keypass twoyimodern \
+            -dname "CN=TwoyiModern, OU=Mobile, O=Twoyi, L=Global, S=Modern, C=US"
+          
+          # Sign using apksigner from Android SDK
+          APKSIGNER=$(find $ANDROID_SDK_ROOT/build-tools -name apksigner | sort -V | tail -n 1)
+          echo "Using apksigner: $APKSIGNER"
+          $APKSIGNER sign --ks release.keystore --ks-key-alias twoyi \
+            --ks-pass pass:twoyimodern --key-pass pass:twoyimodern \
+            --out app/build/outputs/apk/release/twoyi-modern-v1.0.0-release.apk \
+            "$UNSIGNED_APK"
+          
+          echo "Verifying signature..."
+          $APKSIGNER verify --verbose app/build/outputs/apk/release/twoyi-modern-v1.0.0-release.apk
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Twoyi-Modern-Signed-APK
+          path: app/build/outputs/apk/release/twoyi-modern-v1.0.0-release.apk
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Twoyi Modern v1.0.0"
+          tag_name: "v1.0.0-modern"
+          files: app/build/outputs/apk/release/twoyi-modern-v1.0.0-release.apk
+          generate_release_notes: true
+          draft: false
+          prerelease: false

@@ -1,0 +1,32 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Pure AMOLED Black Theme for Twoyi Modern -->
+    <style name="Theme.Twoyi" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Pure Black / Dark Surfaces -->
+        <item name="colorPrimary">#FFFFFF</item>
+        <item name="colorPrimaryVariant">#222222</item>
+        <item name="colorOnPrimary">#000000</item>
+        
+        <item name="colorSecondary">#4E95FF</item>
+        <item name="colorSecondaryVariant">#2E65CF</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+        
+        <item name="android:windowBackground">#000000</item>
+        <item name="colorSurface">#121212</item>
+        <item name="colorOnSurface">#EEEEEE</item>
+        
+        <!-- Status & Navigation bar color -->
+        <item name="android:statusBarColor">#000000</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
+    </style>
+
+    <style name="Theme.Twoyi.FullScreen" parent="@style/ThemeOverlay.AppCompat.Dark">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowBackground">#000000</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+</resources>
